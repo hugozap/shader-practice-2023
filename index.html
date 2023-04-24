@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>GLSL Shader Clouds Example</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <script type="x-shader/x-vertex" id="vertexShader">
+    varying vec2 vUv;
+  
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  </script>
+  <script type="x-shader/x-fragment" id="fragmentShader">
+    precision mediump float;
+  
+    varying vec2 vUv;
+  
+    vec2 random2(vec2 st) {
+      st = vec2(dot(st, vec2(127.1, 311.7)), dot(st, vec2(269.5, 183.3)));
+      return -1.0 + 2.0 * fract(sin(st) * 43758.5453123);
+    }
+  
+    float noise(vec2 st) {
+      vec2 i = floor(st);
+      vec2 f = fract(st);
+  
+      vec2 u = f * f * (3.0 - 2.0 * f);
+  
+      return mix(mix(dot(random2(i), f - vec2(0.0, 0.0)),
+                     dot(random2(i + vec2(1.0, 0.0)), f - vec2(1.0, 0.0)), u.x),
+                 mix(dot(random2(i + vec2(0.0, 1.0)), f - vec2(0.0, 1.0)),
+                     dot(random2(i + vec2(1.0, 1.0)), f - vec2(1.0, 1.0)), u.x), u.y);
+    }
+  
+    // Replace "time" with "uniform float time;", if you want to pass the time as an external uniform variable.
+    uniform float time;
+   
+    void main() {
+      vec2 uv = vUv * vec2(5.0);
+      float t = time * 0.4;
+  
+      float n1 = noise(uv + t);
+      float n2 = noise(uv * 2.0 + t);
+  
+      float n = mix(n1, n2, 0.5);
+      // Use more vibrant colors
+      vec3 color = vec3(0.2 + n, 0.6 + n, 0.8 + n);
+  
+      gl_FragColor = vec4(color, 1.0);
+    }
+  </script>
+  <body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
